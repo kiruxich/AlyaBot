@@ -6,7 +6,7 @@ export const config = {
   webhookSecret: process.env.WEBHOOK_SECRET || "",
   remindMinutes: Number(process.env.REMIND_MINUTES || 10),
   appUrl:
-    process.env.APP_URL ??
+    process.env.APP_URL ||
     (process.env.VERCEL_PROJECT_PRODUCTION_URL
       ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
       : "http://localhost:3000"),
