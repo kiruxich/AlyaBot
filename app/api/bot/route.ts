@@ -72,6 +72,12 @@ export async function POST(req: NextRequest) {
     return ok();
   }
 
+  // Кнопка меню ставится только в ваших чатах; до первого /start Telegram её не принимает.
+  await tg("setChatMenuButton", {
+    chat_id: msg.chat.id,
+    menu_button: { type: "web_app", text: "💖 Открыть", web_app: { url: config.appUrl } },
+  });
+
   const name = esc(config.herName);
   const intro =
     role === "her"
