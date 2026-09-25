@@ -27,10 +27,12 @@ function makeKV(): KV {
 }
 
 // Лениво: иначе сборка на Vercel падает без переменных окружения.
+// Префикс — чтобы можно было делить базу с другими проектами.
+const PREFIX = "alya:";
 let kvInstance: KV | null = null;
 const kv: KV = {
-  get: (key) => (kvInstance ??= makeKV()).get(key),
-  set: (key, value) => (kvInstance ??= makeKV()).set(key, value),
+  get: (key) => (kvInstance ??= makeKV()).get(PREFIX + key),
+  set: (key, value) => (kvInstance ??= makeKV()).set(PREFIX + key, value),
 };
 const MAX_REQUESTS = 150;
 
