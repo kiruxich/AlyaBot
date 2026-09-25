@@ -14,15 +14,27 @@ export async function GET(req: NextRequest) {
       allowed_updates: ["message", "callback_query"],
       drop_pending_updates: true,
     }),
-    menuButton: await tg("setChatMenuButton", {
-      menu_button: { type: "web_app", text: "💖 Открыть", web_app: { url: config.appUrl } },
-    }),
-    commands: await tg("setMyCommands", {
-      commands: [
-        { command: "start", description: "Открыть приложение" },
-        { command: "status", description: "Сводка (только для него)" },
-      ],
-    }),
+    // Для всех — ничего: ни кнопки приложения, ни команд. Всё только в ваших двух чатах.
+    defaultMenu: await tg("setChatMenuButton", { menu_button: { type: "default" } }),
+    defaultCommands: await tg("deleteMyCommands", {}),
+    private: await Promise.all(
+      [config.ownerId, config.herId].map(async (chat_id) => ({
+        menu: await tg("setChatMenuButton", {
+          chat_id,
+          menu_button: { type: "web_app", text: "💖 Открыть", web_app: { url: config.appUrl } },
+        }),
+        commands: await tg("setMyCommands", {
+          scope: { type: "chat", chat_id },
+          commands:
+            chat_id === config.ownerId
+              ? [
+                  { command: "start", description: "Открыть приложение" },
+                  { command: "status", description: "Сводка" },
+                ]
+              : [{ command: "start", description: "Открыть приложение" }],
+        }),
+      })),
+    ),
   };
   return NextResponse.json({ appUrl: config.appUrl, ...results });
 }
