@@ -109,7 +109,7 @@ async function scheduleNag(reqId: string, n: number) {
   const token = process.env.QSTASH_TOKEN;
   if (!token || !config.remindMinutes) return;
   try {
-    await new Client({ token }).publishJSON({
+    await new Client({ token, baseUrl: process.env.QSTASH_URL || undefined }).publishJSON({
       url: `${config.appUrl}/api/remind`,
       body: { id: reqId, n },
       delay: config.remindMinutes * 60,
