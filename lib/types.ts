@@ -18,6 +18,7 @@ export type Req = {
   /** id сообщения-уведомления, чтобы его редактировать. */
   messageId?: number;
   nags: number;
+  lastNagAt?: number;
 };
 
 export type Coupon = { id: string; title: string; createdAt: number; usedAt?: number };

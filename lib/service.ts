@@ -1,4 +1,3 @@
-import { Client } from "@upstash/qstash";
 import { ACTIONS, MODES, MOODS, REPLIES, fill, repliesFor, type ModeId, type ReplyId } from "./catalog";
 import { config } from "./config";
 import * as db from "./db";
@@ -82,7 +81,6 @@ export async function createRequest(input: NewRequest): Promise<Req> {
   const msg = await sendToOwner(describe(req) + (await modesFooter()), replyMarkup(req.id, replies));
   req.messageId = msg?.message_id;
   await db.addRequest(req);
-  await scheduleNag(req.id, 1);
   return req;
 }
 
@@ -105,30 +103,27 @@ export async function applyReply(reqId: string, reply: ReplyId): Promise<Req | n
   return updated;
 }
 
-async function scheduleNag(reqId: string, n: number) {
-  const token = process.env.QSTASH_TOKEN;
-  if (!token || !config.remindMinutes) return;
-  try {
-    await new Client({ token, baseUrl: process.env.QSTASH_URL || undefined }).publishJSON({
-      url: `${config.appUrl}/api/remind`,
-      body: { id: reqId, n },
-      delay: config.remindMinutes * 60,
-    });
-  } catch (e) {
-    console.error("qstash publish failed", e);
+/**
+ * Напоминания о неотвеченных просьбах. Дёргается по расписанию (GitHub Actions → /api/cron).
+ * Каждые REMIND_MINUTES без ответа — следующее, всё более настойчивое; после последнего — «проигнорировано».
+ */
+export async function checkReminders() {
+  const interval = config.remindMinutes * 60_000;
+  if (!interval) return 0;
+  const now = Date.now();
+  const due = (await db.getRequests()).filter(
+    (r) => r.status === "pending" && now - (r.lastNagAt ?? r.createdAt) >= interval,
+  );
+  for (const req of due) {
+    const n = req.nags + 1;
+    if (n > NAG_TEXTS.length) {
+      await db.updateRequest(req.id, (r) => (r.status === "pending" ? { ...r, status: "ignored" } : null));
+      continue;
+    }
+    await db.updateRequest(req.id, (r) => ({ ...r, nags: n, lastNagAt: now }));
+    await sendToOwner(`${fill(NAG_TEXTS[n - 1], esc(config.herName))}\n\n${describe(req)}`, replyMarkup(req.id, repliesFor(req.kind)));
   }
-}
-
-export async function nag(reqId: string, n: number) {
-  const req = (await db.getRequests()).find((r) => r.id === reqId);
-  if (!req || req.status !== "pending") return;
-  if (n > NAG_TEXTS.length) {
-    await db.updateRequest(reqId, (r) => (r.status === "pending" ? { ...r, status: "ignored" } : null));
-    return;
-  }
-  await db.updateRequest(reqId, (r) => ({ ...r, nags: n }));
-  await sendToOwner(`${fill(NAG_TEXTS[n - 1], esc(config.herName))}\n\n${describe(req)}`, replyMarkup(req.id, repliesFor(req.kind)));
-  await scheduleNag(reqId, n + 1);
+  return due.length;
 }
 
 export async function setMood(mood: number) {
