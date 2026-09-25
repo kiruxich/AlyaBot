@@ -9,8 +9,8 @@ type KV = {
 };
 
 function makeKV(): KV {
-  const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   if (url && token) return new Redis({ url, token });
   if (process.env.NODE_ENV === "production") throw new Error("Redis is not configured");
   // Локальная разработка без Redis.
