@@ -147,6 +147,9 @@ export function RequestsTab({ data, run }: { data: AppData; run: Run }) {
             <button className="btn block" disabled={busy || needsOption || (!action && !text.trim())} onClick={send}>
               {busy ? "Отправляю…" : needsOption ? "Выбери вариант 👆" : "Отправить 💌"}
             </button>
+            <button className="btn block ghost" style={{ marginTop: 8 }} disabled={busy} onClick={() => setSheet(null)}>
+              Отмена
+            </button>
           </div>
         </>
       )}

@@ -431,25 +431,23 @@ input[type="range"] {
 }
 .sheet {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 50%;
+  top: 50%;
   z-index: 31;
-  max-width: 560px;
-  max-height: 88vh;
+  width: calc(100% - 32px);
+  max-width: 440px;
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   overflow-y: auto;
-  margin: 0 auto;
-  padding: 10px 16px calc(20px + env(safe-area-inset-bottom));
-  border-radius: 26px 26px 0 0;
+  padding: 20px 16px 18px;
+  border-radius: 26px;
   background: var(--bg);
-  animation: up 0.24s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+  box-shadow: 0 20px 60px rgba(30, 10, 25, 0.35);
+  transform: translate(-50%, -50%);
+  animation: pop 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
 }
 .sheet .grabber {
-  width: 40px;
-  height: 5px;
-  margin: 0 auto 14px;
-  border-radius: 3px;
-  background: var(--line);
+  display: none;
 }
 .sheet .head {
   text-align: center;
@@ -556,9 +554,10 @@ input[type="range"] {
     opacity: 0;
   }
 }
-@keyframes up {
+@keyframes pop {
   from {
-    transform: translateY(100%);
+    transform: translate(-50%, -46%) scale(0.92);
+    opacity: 0;
   }
 }
 @keyframes drop {
