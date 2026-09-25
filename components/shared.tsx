@@ -38,7 +38,7 @@ export function RequestCard({ r, run, owner }: { r: Req; run: Run; owner: boolea
         {r.option && <div className="muted">{r.option}</div>}
         {r.text && <div className="muted">«{r.text}»</div>}
         {r.location && (
-          <a className="muted" href={`https://maps.google.com/?q=${r.location.lat},${r.location.lon}`} target="_blank" rel="noreferrer">
+          <a className="muted" href={`https://yandex.ru/maps/?pt=${r.location.lon},${r.location.lat}&z=17&l=map`} target="_blank" rel="noreferrer">
             📍 геолокация
           </a>
         )}

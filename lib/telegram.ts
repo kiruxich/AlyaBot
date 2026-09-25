@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { config } from "./config";
 import { REPLIES, type ReplyId } from "./catalog";
 
-type InlineButton = { text: string; callback_data?: string; web_app?: { url: string } };
+type InlineButton = { text: string; callback_data?: string; web_app?: { url: string }; url?: string };
 export type Markup = { inline_keyboard: InlineButton[][] };
 
 export async function tg<T = unknown>(method: string, body: Record<string, unknown>): Promise<T | null> {
@@ -71,3 +71,5 @@ export function verifyInitData(initData: string): number | null {
     return null;
   }
 }
+
+export const yandexMapsUrl = (lat: number, lon: number) => `https://yandex.ru/maps/?pt=${lon},${lat}&z=17&l=map`;

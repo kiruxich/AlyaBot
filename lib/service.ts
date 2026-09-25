@@ -1,7 +1,7 @@
 import { ACTIONS, MODES, MOODS, REPLIES, fill, repliesFor, type ModeId, type ReplyId } from "./catalog";
 import { config } from "./config";
 import * as db from "./db";
-import { esc, replyMarkup, sendBigEmoji, sendToOwner, tg } from "./telegram";
+import { esc, replyMarkup, sendBigEmoji, sendToOwner, tg, yandexMapsUrl } from "./telegram";
 import type { Req } from "./types";
 
 const NAG_TEXTS = [
@@ -75,7 +75,14 @@ export async function createRequest(input: NewRequest): Promise<Req> {
 
   await sendBigEmoji(emoji);
   if (req.location) {
-    await tg("sendLocation", { chat_id: config.ownerId, latitude: req.location.lat, longitude: req.location.lon });
+    await tg("sendLocation", {
+      chat_id: config.ownerId,
+      latitude: req.location.lat,
+      longitude: req.location.lon,
+      reply_markup: {
+        inline_keyboard: [[{ text: "🗺 Открыть в Яндекс Картах", url: yandexMapsUrl(req.location.lat, req.location.lon) }]],
+      },
+    });
   }
   const replies: ReplyId[] = input.kind === "coupon" ? ["done"] : repliesFor(input.kind);
   const msg = await sendToOwner(describe(req) + (await modesFooter()), replyMarkup(req.id, replies));
