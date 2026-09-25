@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - run: curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://alya-bot-teal.vercel.app/api/cron
-        env:
+      - env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://alya-bot-teal.vercel.app/api/cron
