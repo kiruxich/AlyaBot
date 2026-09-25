@@ -1,7 +1,7 @@
-import { Redis } from "@upstash/redis";
+import { neon } from "@neondatabase/serverless";
 import type { Coupon, Req, State, Wish } from "./types";
 
-// Храним всё маленькими JSON-документами: пользователей двое, гонок нет.
+// Храним всё маленькими JSON-документами в одной таблице: пользователей двое, гонок нет.
 
 type KV = {
   get<T>(key: string): Promise<T | null>;
@@ -9,11 +9,26 @@ type KV = {
 };
 
 function makeKV(): KV {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (url && token) return new Redis({ url, token });
-  if (process.env.NODE_ENV === "production") throw new Error("Redis is not configured");
-  // Локальная разработка без Redis.
+  const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (url) {
+    const sql = neon(url);
+    // Своя таблица с префиксом — базу можно делить с другими проектами.
+    const ready = sql`CREATE TABLE IF NOT EXISTS alya_kv (key text PRIMARY KEY, value jsonb NOT NULL)`;
+    return {
+      async get<T>(key: string) {
+        await ready;
+        const rows = (await sql`SELECT value FROM alya_kv WHERE key = ${key}`) as { value: T }[];
+        return rows[0]?.value ?? null;
+      },
+      async set(key: string, value: unknown) {
+        await ready;
+        await sql`INSERT INTO alya_kv (key, value) VALUES (${key}, ${JSON.stringify(value)}::jsonb)
+                  ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`;
+      },
+    };
+  }
+  if (process.env.NODE_ENV === "production") throw new Error("Database is not configured (POSTGRES_URL)");
+  // Локальная разработка без базы.
   const g = globalThis as { __mem?: Map<string, unknown> };
   const mem = (g.__mem ??= new Map());
   return {
@@ -27,12 +42,10 @@ function makeKV(): KV {
 }
 
 // Лениво: иначе сборка на Vercel падает без переменных окружения.
-// Префикс — чтобы можно было делить базу с другими проектами.
-const PREFIX = "alya:";
 let kvInstance: KV | null = null;
 const kv: KV = {
-  get: (key) => (kvInstance ??= makeKV()).get(PREFIX + key),
-  set: (key, value) => (kvInstance ??= makeKV()).set(PREFIX + key, value),
+  get: (key) => (kvInstance ??= makeKV()).get(key),
+  set: (key, value) => (kvInstance ??= makeKV()).set(key, value),
 };
 const MAX_REQUESTS = 150;
 

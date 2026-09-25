@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { MODES, REPLIES, type ModeId, type ReplyId } from "@/lib/catalog";
 import { config, roleOf } from "@/lib/config";
 import * as db from "@/lib/db";
-import { applyReply, createRequest, setMode, setMood } from "@/lib/service";
+import { applyReply, checkReminders, createRequest, setMode, setMood } from "@/lib/service";
 import { esc, sendToOwner } from "@/lib/telegram";
 import { verifyInitData } from "@/lib/telegram";
 import type { AppData } from "@/lib/types";
@@ -39,6 +39,8 @@ async function load(role: "owner" | "her"): Promise<AppData> {
 export async function GET(req: NextRequest) {
   const role = auth(req);
   if (!role) return deny();
+  // Попутно проверяем напоминания — страховка к cron.
+  after(() => checkReminders().catch(console.error));
   return NextResponse.json(await load(role));
 }
 

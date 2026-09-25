@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import type { ReplyId } from "@/lib/catalog";
 import { REPLIES } from "@/lib/catalog";
 import { config, roleOf } from "@/lib/config";
-import { applyReply, statusText } from "@/lib/service";
+import { applyReply, checkReminders, statusText } from "@/lib/service";
 import { esc, openAppMarkup, tg } from "@/lib/telegram";
 
 type Update = {
@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
   const update = (await req.json()) as Update;
+  after(() => checkReminders().catch(console.error));
 
   if (update.callback_query) {
     const cq = update.callback_query;
