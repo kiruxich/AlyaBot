@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { config } from "@/lib/config";
+import { resetAll } from "@/lib/db";
 import { tg } from "@/lib/telegram";
 
 // Разовая настройка: GET /api/setup?secret=<WEBHOOK_SECRET>
@@ -7,6 +8,8 @@ export async function GET(req: NextRequest) {
   if (!config.webhookSecret || req.nextUrl.searchParams.get("secret") !== config.webhookSecret) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
+  // ?reset=1 — стереть историю, купоны, вишлист и состояние.
+  if (req.nextUrl.searchParams.get("reset") === "1") await resetAll();
   const results = {
     webhook: await tg("setWebhook", {
       url: `${config.appUrl}/api/bot`,

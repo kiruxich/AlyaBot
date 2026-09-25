@@ -85,3 +85,8 @@ export async function getWishlist(): Promise<Wish[]> {
   return (await kv.get<Wish[]>("wishlist")) ?? [];
 }
 export const setWishlist = (w: Wish[]) => kv.set("wishlist", w);
+
+/** Полная очистка данных бота (только его таблица). */
+export async function resetAll() {
+  for (const key of ["state", "requests", "coupons", "wishlist"]) await kv.set(key, null);
+}
