@@ -2,10 +2,16 @@ import { after, NextResponse, type NextRequest } from "next/server";
 import type { ReplyId } from "@/lib/catalog";
 import { REPLIES } from "@/lib/catalog";
 import { config, roleOf } from "@/lib/config";
-import { applyReply, checkReminders, statusText } from "@/lib/service";
+import { applyReply, checkReminders, setReactionByMessage, statusText } from "@/lib/service";
 import { esc, openAppMarkup, tg } from "@/lib/telegram";
 
 type Update = {
+  message_reaction?: {
+    chat: { id: number };
+    message_id: number;
+    user?: { id: number };
+    new_reaction: { type: string; emoji?: string }[];
+  };
   message?: { chat: { id: number }; from?: { id: number }; text?: string };
   callback_query?: {
     id: string;
@@ -30,6 +36,16 @@ export async function POST(req: NextRequest) {
   }
   const update = (await req.json()) as Update;
   after(() => checkReminders().catch(console.error));
+
+  // Его нативная реакция на уведомление → реакция на просьбу в приложении.
+  const mr = update.message_reaction;
+  if (mr) {
+    if (mr.user && roleOf(mr.user.id) === "owner") {
+      const emoji = mr.new_reaction.find((x) => x.type === "emoji")?.emoji ?? null;
+      await setReactionByMessage(mr.message_id, emoji);
+    }
+    return ok();
+  }
 
   if (update.callback_query) {
     const cq = update.callback_query;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { REPLIES, repliesFor } from "@/lib/catalog";
+import { REACTIONS, REPLIES, repliesFor } from "@/lib/catalog";
 import type { Coupon, Req, Wish } from "@/lib/types";
 import { ask, haptic } from "@/lib/webapp";
 
@@ -24,12 +24,20 @@ export function timeAgo(ts: number) {
   return new Date(ts).toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
 }
 
+/** Telegram хранит сердечко без VS16 — дорисовываем, чтобы оно было цветным. */
+const showEmoji = (e: string) => (e === "❤" ? "❤️" : e);
+
 export function RequestCard({ r, run, owner }: { r: Req; run: Run; owner: boolean }) {
   const reply = r.reply ? REPLIES[r.reply] : null;
   const canReply = owner && r.status !== "done";
   const replies = r.kind === "coupon" ? (["done"] as const) : repliesFor(r.kind);
   return (
     <div className="card hist">
+      {r.reaction && (
+        <span className="reaction-bubble" title="Его реакция">
+          {showEmoji(r.reaction)}
+        </span>
+      )}
       <span className="emo">{r.emoji}</span>
       <div className="body">
         <div className="title">
@@ -48,6 +56,23 @@ export function RequestCard({ r, run, owner }: { r: Req; run: Run; owner: boolea
             {timeAgo(r.createdAt)}
           </span>
         </div>
+        {owner && (
+          <div className="reactions">
+            {REACTIONS.map((e) => (
+              <button
+                key={e}
+                aria-pressed={r.reaction === e}
+                aria-label={`Реакция ${e}`}
+                onClick={() => {
+                  haptic.select();
+                  run("react", { id: r.id, reaction: r.reaction === e ? null : e });
+                }}
+              >
+                {showEmoji(e)}
+              </button>
+            ))}
+          </div>
+        )}
         {canReply && (
           <div className="replies">
             {replies.map((id) => (

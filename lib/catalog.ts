@@ -124,6 +124,10 @@ export const SECTIONS: Section[] = [
       { id: "shopping", emoji: "🛍", label: "хочу на шопинг", notify: "{name} хочет на шопинг" },
       { id: "coffee", emoji: "☕", label: "привези кофе", notify: "{name} просит привезти кофе" },
       { id: "massage", emoji: "💆‍♀️", label: "хочу массаж", notify: "{name} хочет массаж" },
+      { id: "sexy", emoji: "😏", label: "хочу секситься", notify: "{name} хочет секситься 😏" },
+      { id: "whine", emoji: "😩", label: "хочу конючить", notify: "{name} хочет конючить. Готовься слушать" },
+      { id: "crazy", emoji: "🤪", label: "хочу беситься", notify: "{name} хочет беситься. Присоединяйся" },
+      { id: "sulk", emoji: "😒", label: "хочу кукситься", notify: "{name} хочет кукситься. Пожалей её" },
       {
         id: "meme",
         emoji: "🐱",
@@ -193,3 +197,6 @@ export const CUSTOM_EMOJIS = ["💌", "🥺", "😘", "🫶", "🙈", "👀", "�
 export function fill(text: string, name: string) {
   return text.replaceAll("{name}", name);
 }
+
+/** Его реакции на её просьбы (подмножество реакций Telegram, чтобы совпадали с нативными). */
+export const REACTIONS = ["❤", "😘", "🥰", "🔥", "🤣", "🙈", "😈", "🫡", "🤗", "💋"];

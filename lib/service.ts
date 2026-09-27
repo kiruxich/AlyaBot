@@ -174,3 +174,22 @@ export async function statusText() {
   lines.push(`🎟 Неиспользованных купонов: ${coupons.filter((c) => !c.usedAt).length}`);
   return lines.join("\n");
 }
+
+/** Реакция на просьбу — из приложения или нативная реакция на уведомление в Telegram. */
+export async function setReaction(reqId: string, reaction: string | null, fromTelegram = false) {
+  const updated = await db.updateRequest(reqId, (r) => ({ ...r, reaction: reaction ?? undefined }));
+  // Из приложения — дублируем реакцию на уведомление в чате, чтобы всё совпадало.
+  if (updated?.messageId && !fromTelegram) {
+    await tg("setMessageReaction", {
+      chat_id: config.ownerId,
+      message_id: updated.messageId,
+      reaction: reaction ? [{ type: "emoji", emoji: reaction }] : [],
+    });
+  }
+  return updated;
+}
+
+export async function setReactionByMessage(messageId: number, reaction: string | null) {
+  const req = (await db.getRequests()).find((r) => r.messageId === messageId);
+  if (req) await setReaction(req.id, reaction, true);
+}

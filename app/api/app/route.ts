@@ -1,8 +1,8 @@
 import { after, NextResponse, type NextRequest } from "next/server";
-import { MODES, REPLIES, type ModeId, type ReplyId } from "@/lib/catalog";
+import { MODES, REACTIONS, REPLIES, type ModeId, type ReplyId } from "@/lib/catalog";
 import { config, roleOf } from "@/lib/config";
 import * as db from "@/lib/db";
-import { applyReply, checkReminders, createRequest, setMode, setMood } from "@/lib/service";
+import { applyReply, checkReminders, createRequest, setMode, setMood, setReaction } from "@/lib/service";
 import { esc, sendToOwner } from "@/lib/telegram";
 import { verifyInitData } from "@/lib/telegram";
 import type { AppData } from "@/lib/types";
@@ -83,6 +83,13 @@ export async function POST(req: NextRequest) {
       if (!(String(body.reply) in REPLIES)) return bad("reply");
       await applyReply(str(body.id, 16), body.reply as ReplyId);
       break;
+    case "react": {
+      if (!owner) return deny();
+      const reaction = body.reaction === null ? null : String(body.reaction);
+      if (reaction !== null && !REACTIONS.includes(reaction)) return bad("reaction");
+      await setReaction(str(body.id, 16), reaction);
+      break;
+    }
     case "coupon.create": {
       if (!owner) return deny();
       const title = str(body.title, 80);

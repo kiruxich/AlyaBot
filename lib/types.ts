@@ -19,6 +19,8 @@ export type Req = {
   messageId?: number;
   nags: number;
   lastNagAt?: number;
+  /** Его реакция эмодзи. */
+  reaction?: string;
 };
 
 export type Coupon = { id: string; title: string; createdAt: number; usedAt?: number };

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     webhook: await tg("setWebhook", {
       url: `${config.appUrl}/api/bot`,
       secret_token: config.webhookSecret,
-      allowed_updates: ["message", "callback_query"],
+      allowed_updates: ["message", "callback_query", "message_reaction"],
       drop_pending_updates: true,
     }),
     // Для всех — ничего: ни кнопки приложения, ни команд. Всё только в ваших двух чатах.

@@ -353,6 +353,45 @@ input[type="range"] {
   background: #4a2026;
   color: #ff9a9f;
 }
+.hist {
+  position: relative;
+}
+.reaction-bubble {
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  font-size: 20px;
+  animation: pop-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.reactions {
+  display: flex;
+  gap: 2px;
+  margin-top: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.reactions button {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 19px;
+  transition: transform 0.12s, background 0.12s;
+}
+.reactions button:active {
+  transform: scale(1.3);
+}
+.reactions button[aria-pressed="true"] {
+  background: var(--card-2);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
 .replies {
   display: flex;
   flex-wrap: wrap;
@@ -552,6 +591,11 @@ input[type="range"] {
 @keyframes fade {
   from {
     opacity: 0;
+  }
+}
+@keyframes pop-in {
+  from {
+    transform: scale(0);
   }
 }
 @keyframes pop {
