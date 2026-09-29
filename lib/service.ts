@@ -13,6 +13,7 @@ const NAG_TEXTS = [
 export type NewRequest = {
   kind: string;
   option?: string;
+  amount?: number;
   text?: string;
   emoji?: string;
   location?: { lat: number; lon: number };
@@ -23,6 +24,7 @@ export function describe(r: Req) {
   const name = config.herName;
   let line = `${r.emoji} <b>${esc(r.title)}</b>`;
   if (r.option) line += `\n— ${esc(r.option)}`;
+  if (r.amount !== undefined) line += `\n— 💸 ${r.amount.toLocaleString("ru-RU")} ₽`;
   if (r.text) line += `\n«${esc(r.text)}»`;
   if (r.kind === "custom" || r.kind === "coupon") line = line.replace("<b>", `<b>${esc(name)}: `);
   return line;
@@ -38,7 +40,7 @@ async function modesFooter() {
 export async function createRequest(input: NewRequest): Promise<Req> {
   const name = config.herName;
   const now = Date.now();
-  let emoji: string, title: string, option: string | undefined, text: string | undefined;
+  let emoji: string, title: string, option: string | undefined, amount: number | undefined, text: string | undefined;
 
   if (input.kind === "custom") {
     text = input.text?.trim().slice(0, 500);
@@ -53,6 +55,18 @@ export async function createRequest(input: NewRequest): Promise<Req> {
     if (!def) throw new Error("unknown action");
     emoji = def.emoji;
     title = fill(def.notify, name);
+    if (def.amount) {
+      const requestedAmount = input.amount;
+      if (
+        typeof requestedAmount !== "number" ||
+        !Number.isSafeInteger(requestedAmount) ||
+        requestedAmount < 1 ||
+        requestedAmount > 1_000_000
+      ) {
+        throw new Error("invalid amount");
+      }
+      amount = requestedAmount;
+    }
     if (def.options) {
       const opt = def.options.items.find((o) => o.id === input.option);
       if (opt) option = `${opt.emoji} ${opt.label}`;
@@ -65,6 +79,7 @@ export async function createRequest(input: NewRequest): Promise<Req> {
     emoji,
     title,
     option,
+    amount,
     text,
     location: input.location,
     status: "pending",

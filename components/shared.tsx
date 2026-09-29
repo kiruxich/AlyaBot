@@ -44,6 +44,7 @@ export function RequestCard({ r, run, owner }: { r: Req; run: Run; owner: boolea
           {r.kind === "custom" || r.kind === "coupon" ? `${r.title[0].toUpperCase()}${r.title.slice(1)}` : r.title}
         </div>
         {r.option && <div className="muted">{r.option}</div>}
+        {r.amount && <div className="muted">💸 {r.amount.toLocaleString("ru-RU")} ₽</div>}
         {r.text && <div className="muted">«{r.text}»</div>}
         {r.location && (
           <a className="muted" href={`https://yandex.ru/maps/?pt=${r.location.lon},${r.location.lat}&z=17&l=map`} target="_blank" rel="noreferrer">

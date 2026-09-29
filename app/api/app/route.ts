@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
         await createRequest({
           kind: str(body.kind, 32),
           option: str(body.option, 32) || undefined,
+          amount: typeof body.amount === "number" ? body.amount : undefined,
           text: str(body.text, 500) || undefined,
           emoji: str(body.emoji, 8) || undefined,
           location,

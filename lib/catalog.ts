@@ -9,6 +9,8 @@ export type ActionDef = {
   /** Текст уведомления. {name} подставляется именем. */
   notify: string;
   options?: { title: string; items: Option[] };
+  /** Попросить сумму в рублях. */
+  amount?: boolean;
   /** Приложить геолокацию. */
   location?: boolean;
   /** Кнопки ответа в уведомлении. */
@@ -45,6 +47,13 @@ export const SECTIONS: Section[] = [
         notify: "{name} просит забрать её!",
         location: true,
         replies: ["going", "later", "call", "done"],
+      },
+      {
+        id: "money",
+        emoji: "💸",
+        label: "Дай монету 👻",
+        notify: "{name} просит монету",
+        amount: true,
       },
       { id: "flowers", emoji: "🌹", label: "хочу цветочки", notify: "{name} хочет цветочки" },
       { id: "gift", emoji: "🎁", label: "хочу подарочек", notify: "{name} хочет подарочек" },

@@ -13,6 +13,7 @@ export function RequestsTab({ data, run }: { data: AppData; run: Run }) {
   const [option, setOption] = useState<string | null>(null);
   const [withLocation, setWithLocation] = useState(true);
   const [text, setText] = useState("");
+  const [amount, setAmount] = useState("");
   const [emoji, setEmoji] = useState(CUSTOM_EMOJIS[0]);
   const [busy, setBusy] = useState(false);
   const lastTap = useRef({ x: innerWidthSafe() / 2, y: 300 });
@@ -21,6 +22,7 @@ export function RequestsTab({ data, run }: { data: AppData; run: Run }) {
     lastTap.current = { x: e.clientX, y: e.clientY };
     haptic.tap();
     setOption(null);
+    setAmount("");
     setSheet(s);
   };
 
@@ -38,7 +40,7 @@ export function RequestsTab({ data, run }: { data: AppData; run: Run }) {
       const location = a.location && withLocation ? await getLocation() : undefined;
       ok = await run(
         "request",
-        { kind: a.id, option: option ?? undefined, location: location ?? undefined },
+        { kind: a.id, option: option ?? undefined, amount: a.amount ? Number(amount) : undefined, location: location ?? undefined },
         a.location && withLocation && !location ? "Отправлено, но без геолокации 📍" : "Отправлено 💌",
       );
       emojis = [a.emoji, "💖", "✨"];
@@ -52,6 +54,7 @@ export function RequestsTab({ data, run }: { data: AppData; run: Run }) {
 
   const action = sheet && "action" in sheet ? sheet.action : null;
   const needsOption = Boolean(action?.options) && !option;
+  const needsAmount = Boolean(action?.amount) && (!Number.isSafeInteger(Number(amount)) || Number(amount) < 1 || Number(amount) > 1_000_000);
 
   return (
     <>
@@ -121,6 +124,23 @@ export function RequestsTab({ data, run }: { data: AppData; run: Run }) {
                     />
                   </div>
                 )}
+                {action.amount && (
+                  <label className="stack" style={{ marginBottom: 14 }}>
+                    <span style={{ fontWeight: 800 }}>Сумма, ₽</span>
+                    <input
+                      className="field"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={1_000_000}
+                      step={1}
+                      placeholder="Например, 500"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      autoFocus
+                    />
+                  </label>
+                )}
               </>
             ) : (
               <>
@@ -145,8 +165,8 @@ export function RequestsTab({ data, run }: { data: AppData; run: Run }) {
                 />
               </>
             )}
-            <button className="btn block" disabled={busy || needsOption || (!action && !text.trim())} onClick={send}>
-              {busy ? "Отправляю…" : needsOption ? "Выбери вариант 👆" : "Отправить 💌"}
+            <button className="btn block" disabled={busy || needsOption || needsAmount || (!action && !text.trim())} onClick={send}>
+              {busy ? "Отправляю…" : needsOption ? "Выбери вариант 👆" : needsAmount ? "Укажи сумму 👆" : "Отправить 💌"}
             </button>
             <button className="btn block ghost" style={{ marginTop: 8 }} disabled={busy} onClick={() => setSheet(null)}>
               Отмена

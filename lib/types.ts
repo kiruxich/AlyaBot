@@ -9,6 +9,8 @@ export type Req = {
   emoji: string;
   title: string;
   option?: string;
+  /** Запрошенная сумма в рублях. */
+  amount?: number;
   text?: string;
   location?: { lat: number; lon: number };
   status: RequestStatus;
