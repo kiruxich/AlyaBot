@@ -25,6 +25,7 @@ export const REPLIES = {
   later: { emoji: "⏰", label: "Чуть позже", status: "accepted" },
   call: { emoji: "📞", label: "Не могу, позвоню", status: "accepted" },
   done: { emoji: "✅", label: "Сделано", status: "done" },
+  cannot: { emoji: "❌", label: "Не смогу сделать", status: "done" },
   flowers: { emoji: "🌹", label: "Искупил цветами", status: "done" },
   gift: { emoji: "🎁", label: "Искупил подарком", status: "done" },
   sorry: { emoji: "🙏", label: "Извинился", status: "done" },
@@ -32,7 +33,7 @@ export const REPLIES = {
 
 export type ReplyId = keyof typeof REPLIES;
 
-const DEFAULT_REPLIES: ReplyId[] = ["running", "later", "call", "done"];
+const DEFAULT_REPLIES: ReplyId[] = ["running", "later", "call", "done", "cannot"];
 const ATONE_REPLIES: ReplyId[] = ["flowers", "gift", "sorry"];
 
 export const SECTIONS: Section[] = [
