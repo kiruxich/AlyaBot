@@ -197,6 +197,7 @@ export async function setReactionByMessage(messageId: number, reaction: string |
 /** «Доброе утро» / «Спокойной ночи» — от неё ему и от него ей. */
 export async function sendGreeting(greeting: GreetingId, fromOwner: boolean) {
   const g = GREETINGS[greeting];
-  if (fromOwner) await sendToHer(`${g.emoji} <b>${g.label}</b>, ${esc(config.herName)} 💖`);
-  else await sendToOwner(`${g.emoji} <b>${g.label}</b> от ${esc(config.herName)} 💖`);
+  const text = `${g.label} 💖`;
+  if (fromOwner) await sendToHer(text);
+  else await sendToOwner(text);
 }
