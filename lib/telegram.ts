@@ -27,6 +27,9 @@ export const sendToOwner = (text: string, markup?: Markup) =>
     reply_markup: markup,
   });
 
+export const sendToHer = (text: string) =>
+  tg<{ message_id: number }>("sendMessage", { chat_id: config.herId, text, parse_mode: "HTML" });
+
 /** Одиночный эмодзи Telegram показывает крупным и анимированным. */
 export const sendBigEmoji = (emoji: string) => tg("sendMessage", { chat_id: config.ownerId, text: emoji });
 

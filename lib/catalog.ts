@@ -190,6 +190,13 @@ export const MODES = {
 
 export type ModeId = keyof typeof MODES;
 
+export const GREETINGS = {
+  morning: { emoji: "☀️", label: "Доброе утро" },
+  night: { emoji: "🌙", label: "Спокойной ночи" },
+} as const;
+
+export type GreetingId = keyof typeof GREETINGS;
+
 export const MOODS = ["😭", "😢", "😔", "😕", "😐", "🙂", "😊", "😄", "🥰", "🤩"];
 
 export const CUSTOM_EMOJIS = ["💌", "🥺", "😘", "🫶", "🙈", "👀", "🔥", "🍓", "🧸", "🌸"];

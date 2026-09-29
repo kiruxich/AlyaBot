@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CUSTOM_EMOJIS, MODES, MOODS, SECTIONS, type ActionDef, type ModeId } from "@/lib/catalog";
 import type { AppData } from "@/lib/types";
 import { getLocation, haptic } from "@/lib/webapp";
-import { burst, type Run } from "./shared";
+import { burst, Greetings, type Run } from "./shared";
 
 type SheetState = { action: ActionDef } | { custom: true } | null;
 
@@ -55,6 +55,7 @@ export function RequestsTab({ data, run }: { data: AppData; run: Run }) {
 
   return (
     <>
+      <Greetings run={run} owner={false} />
       {SECTIONS.map((s, si) => (
         <section key={s.id}>
           <div className="section-title">{s.title}</div>

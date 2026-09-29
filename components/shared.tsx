@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { REACTIONS, REPLIES, repliesFor } from "@/lib/catalog";
+import { GREETINGS, REACTIONS, REPLIES, repliesFor, type GreetingId } from "@/lib/catalog";
 import type { Coupon, Req, Wish } from "@/lib/types";
 import { ask, haptic } from "@/lib/webapp";
 
@@ -95,6 +95,29 @@ export function History({ requests, run, owner }: { requests: Req[]; run: Run; o
         <RequestCard key={r.id} r={r} run={run} owner={owner} />
       ))}
     </div>
+  );
+}
+
+export function Greetings({ run, owner }: { run: Run; owner: boolean }) {
+  return (
+    <section>
+      <div className="grid">
+        {(Object.keys(GREETINGS) as GreetingId[]).map((id) => (
+          <button
+            key={id}
+            className="tile big"
+            onClick={(e) => {
+              haptic.tap();
+              run("greet", { greeting: id }, owner ? "Отправлено ей 💖" : "Отправлено 💖");
+              burst(e.clientX, e.clientY, [GREETINGS[id].emoji, "💖", "✨"]);
+            }}
+          >
+            <span className="emo">{GREETINGS[id].emoji}</span>
+            {GREETINGS[id].label}
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
 

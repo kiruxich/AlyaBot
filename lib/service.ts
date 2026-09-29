@@ -1,7 +1,7 @@
-import { ACTIONS, MODES, MOODS, REPLIES, fill, repliesFor, type ModeId, type ReplyId } from "./catalog";
+import { ACTIONS, GREETINGS, MODES, MOODS, REPLIES, fill, repliesFor, type GreetingId, type ModeId, type ReplyId } from "./catalog";
 import { config } from "./config";
 import * as db from "./db";
-import { esc, replyMarkup, sendBigEmoji, sendToOwner, tg, yandexMapsUrl } from "./telegram";
+import { esc, replyMarkup, sendBigEmoji, sendToHer, sendToOwner, tg, yandexMapsUrl } from "./telegram";
 import type { Req } from "./types";
 
 const NAG_TEXTS = [
@@ -192,4 +192,11 @@ export async function setReaction(reqId: string, reaction: string | null, fromTe
 export async function setReactionByMessage(messageId: number, reaction: string | null) {
   const req = (await db.getRequests()).find((r) => r.messageId === messageId);
   if (req) await setReaction(req.id, reaction, true);
+}
+
+/** «Доброе утро» / «Спокойной ночи» — от неё ему и от него ей. */
+export async function sendGreeting(greeting: GreetingId, fromOwner: boolean) {
+  const g = GREETINGS[greeting];
+  if (fromOwner) await sendToHer(`${g.emoji} <b>${g.label}</b>, ${esc(config.herName)} 💖`);
+  else await sendToOwner(`${g.emoji} <b>${g.label}</b> от ${esc(config.herName)} 💖`);
 }

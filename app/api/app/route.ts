@@ -1,8 +1,8 @@
 import { after, NextResponse, type NextRequest } from "next/server";
-import { MODES, REACTIONS, REPLIES, type ModeId, type ReplyId } from "@/lib/catalog";
+import { GREETINGS, MODES, REACTIONS, REPLIES, type GreetingId, type ModeId, type ReplyId } from "@/lib/catalog";
 import { config, roleOf } from "@/lib/config";
 import * as db from "@/lib/db";
-import { applyReply, checkReminders, createRequest, setMode, setMood, setReaction } from "@/lib/service";
+import { applyReply, checkReminders, createRequest, sendGreeting, setMode, setMood, setReaction } from "@/lib/service";
 import { esc, sendToOwner } from "@/lib/telegram";
 import { verifyInitData } from "@/lib/telegram";
 import type { AppData } from "@/lib/types";
@@ -70,6 +70,10 @@ export async function POST(req: NextRequest) {
       }
       break;
     }
+    case "greet":
+      if (!(String(body.greeting) in GREETINGS)) return bad("greeting");
+      await sendGreeting(body.greeting as GreetingId, owner);
+      break;
     case "mood":
       if (typeof body.mood !== "number") return bad("mood");
       await setMood(body.mood);

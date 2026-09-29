@@ -2,7 +2,7 @@
 
 import { MODES, MOODS, type ModeId } from "@/lib/catalog";
 import type { AppData } from "@/lib/types";
-import { Empty, RequestCard, timeAgo, type Run } from "./shared";
+import { Empty, Greetings, RequestCard, timeAgo, type Run } from "./shared";
 
 export function StatusTab({ data, run }: { data: AppData; run: Run }) {
   const { state, requests } = data;
@@ -13,6 +13,7 @@ export function StatusTab({ data, run }: { data: AppData; run: Run }) {
 
   return (
     <div className="stack">
+      <Greetings run={run} owner />
       <div className="card row">
         <span style={{ fontSize: 52 }}>{state.mood ? MOODS[state.mood - 1] : "❔"}</span>
         <div>
