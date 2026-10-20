@@ -1,4 +1,3 @@
-import { neon } from "@neondatabase/serverless";
 import type { Coupon, Req, State, Wish } from "./types";
 
 // Храним всё маленькими JSON-документами по ключам: пользователей двое, гонок нет.
@@ -36,25 +35,7 @@ function makeKV(): KV {
   const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
   if (redisUrl && redisToken) return redisKV(redisUrl, redisToken);
 
-  const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
-  if (url) {
-    const sql = neon(url);
-    // Своя таблица с префиксом — базу можно делить с другими проектами.
-    const ready = sql`CREATE TABLE IF NOT EXISTS alya_kv (key text PRIMARY KEY, value jsonb NOT NULL)`;
-    return {
-      async get<T>(key: string) {
-        await ready;
-        const rows = (await sql`SELECT value FROM alya_kv WHERE key = ${key}`) as { value: T }[];
-        return rows[0]?.value ?? null;
-      },
-      async set(key: string, value: unknown) {
-        await ready;
-        await sql`INSERT INTO alya_kv (key, value) VALUES (${key}, ${JSON.stringify(value)}::jsonb)
-                  ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`;
-      },
-    };
-  }
-  if (process.env.NODE_ENV === "production") throw new Error("Database is not configured (UPSTASH_REDIS_REST_URL or POSTGRES_URL)");
+  if (process.env.NODE_ENV === "production") throw new Error("Database is not configured (UPSTASH_REDIS_REST_URL)");
   // Локальная разработка без базы.
   const g = globalThis as { __mem?: Map<string, unknown> };
   const mem = (g.__mem ??= new Map());
@@ -113,7 +94,7 @@ export async function getWishlist(): Promise<Wish[]> {
 }
 export const setWishlist = (w: Wish[]) => kv.set("wishlist", w);
 
-/** Полная очистка данных бота (только его таблица). */
+/** Полная очистка данных бота (только его ключи). */
 export async function resetAll() {
   for (const key of ["state", "requests", "coupons", "wishlist"]) await kv.set(key, null);
 }
