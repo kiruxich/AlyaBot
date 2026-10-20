@@ -1,14 +1,41 @@
 import { neon } from "@neondatabase/serverless";
 import type { Coupon, Req, State, Wish } from "./types";
 
-// Храним всё маленькими JSON-документами в одной таблице: пользователей двое, гонок нет.
+// Храним всё маленькими JSON-документами по ключам: пользователей двое, гонок нет.
 
 type KV = {
   get<T>(key: string): Promise<T | null>;
   set(key: string, value: unknown): Promise<unknown>;
 };
 
+/** Upstash Redis через REST: базу не надо будить, лимит считается в командах, а не в часах. */
+function redisKV(url: string, token: string): KV {
+  const cmd = async (...args: string[]) => {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}` },
+      body: JSON.stringify(args),
+      cache: "no-store",
+    });
+    const body = (await res.json().catch(() => null)) as { result?: unknown; error?: string } | null;
+    if (!res.ok || !body || body.error) throw new Error(`Redis ${res.status}: ${body?.error ?? "bad response"}`);
+    return body.result;
+  };
+  return {
+    async get<T>(key: string) {
+      const raw = await cmd("GET", `alya:${key}`);
+      return typeof raw === "string" ? (JSON.parse(raw) as T) : null;
+    },
+    set: (key, value) => cmd("SET", `alya:${key}`, JSON.stringify(value)),
+  };
+}
+
 function makeKV(): KV {
+  // Upstash напрямую или через Vercel Marketplace (там переменные называются KV_*).
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  if (redisUrl && redisToken) return redisKV(redisUrl, redisToken);
+
   const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
   if (url) {
     const sql = neon(url);
@@ -27,7 +54,7 @@ function makeKV(): KV {
       },
     };
   }
-  if (process.env.NODE_ENV === "production") throw new Error("Database is not configured (POSTGRES_URL)");
+  if (process.env.NODE_ENV === "production") throw new Error("Database is not configured (UPSTASH_REDIS_REST_URL or POSTGRES_URL)");
   // Локальная разработка без базы.
   const g = globalThis as { __mem?: Map<string, unknown> };
   const mem = (g.__mem ??= new Map());
