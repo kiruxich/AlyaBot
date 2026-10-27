@@ -137,10 +137,21 @@ export async function POST(req: NextRequest) {
       await db.setWishlist(list.filter((w) => w.id !== body.id));
       break;
     }
+    case "wish.complete": {
+      if (!owner) return deny();
+      if (typeof body.completed !== "boolean") return bad("completed");
+      const list = await db.getWishlist();
+      const wish = list.find((w) => w.id === body.id);
+      if (!wish) return bad("wish");
+      wish.completedAt = body.completed ? (wish.completedAt ?? Date.now()) : undefined;
+      wish.reserved = false;
+      await db.setWishlist(list);
+      break;
+    }
     case "wish.reserve": {
       if (!owner) return deny();
       const list = await db.getWishlist();
-      await db.setWishlist(list.map((w) => (w.id === body.id ? { ...w, reserved: Boolean(body.reserved) } : w)));
+      await db.setWishlist(list.map((w) => (w.id === body.id && !w.completedAt ? { ...w, reserved: Boolean(body.reserved) } : w)));
       break;
     }
     default:
