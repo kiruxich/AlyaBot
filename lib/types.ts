@@ -35,6 +35,8 @@ export type Wish = {
   createdAt: number;
   /** Видно только ему. */
   reserved?: boolean;
+  /** Когда желание исполнено. Видно обоим. */
+  completedAt?: number;
 };
 
 export type State = {

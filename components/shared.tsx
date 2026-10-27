@@ -197,6 +197,7 @@ export function Wishlist({ wishlist, run, owner }: { wishlist: Wish[]; run: Run;
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [note, setNote] = useState("");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   return (
     <div>
       {!owner && (
@@ -227,6 +228,9 @@ export function Wishlist({ wishlist, run, owner }: { wishlist: Wish[]; run: Run;
             <div className="row spread" style={{ alignItems: "flex-start" }}>
               <div style={{ minWidth: 0 }}>
                 <h3 style={{ overflowWrap: "anywhere" }}>{w.title}</h3>
+                {w.completedAt && (
+                  <span className="badge done" role="status">✅ Исполнено</span>
+                )}
                 {w.note && <div className="muted">{w.note}</div>}
                 {w.url && (
                   <a className="muted" href={w.url} target="_blank" rel="noreferrer">
@@ -234,18 +238,40 @@ export function Wishlist({ wishlist, run, owner }: { wishlist: Wish[]; run: Run;
                   </a>
                 )}
               </div>
-              <button className="btn small ghost" onClick={async () => (await ask("Удалить из вишлиста?")) && run("wish.delete", { id: w.id })}>
+              <button className="btn small ghost" disabled={updatingId !== null} onClick={async () => (await ask("Удалить из вишлиста?")) && run("wish.delete", { id: w.id })}>
                 ✕
               </button>
             </div>
             {owner && (
-              <button
-                className={`btn small ${w.reserved ? "" : "ghost"}`}
-                style={{ marginTop: 10 }}
-                onClick={() => run("wish.reserve", { id: w.id, reserved: !w.reserved })}
-              >
-                {w.reserved ? "🤫 Я это дарю (она не видит)" : "Забронировать тайно"}
-              </button>
+              <div className="stack" style={{ marginTop: 10 }}>
+                <button
+                  className={`btn small ${w.completedAt ? "ghost" : ""}`}
+                  disabled={updatingId !== null}
+                  onClick={async () => {
+                    setUpdatingId(w.id);
+                    try {
+                      await run(
+                        "wish.complete",
+                        { id: w.id, completed: !w.completedAt },
+                        w.completedAt ? "Снова в желаниях 🎁" : "Желание исполнено 🎉",
+                      );
+                    } finally {
+                      setUpdatingId(null);
+                    }
+                  }}
+                >
+                  {updatingId === w.id ? "Сохраняю…" : w.completedAt ? "Вернуть в желания" : "✅ Куплено / подарено"}
+                </button>
+                {!w.completedAt && (
+                  <button
+                    className={`btn small ${w.reserved ? "" : "ghost"}`}
+                    disabled={updatingId !== null}
+                    onClick={() => run("wish.reserve", { id: w.id, reserved: !w.reserved })}
+                  >
+                    {w.reserved ? "🤫 Я это дарю (она не видит)" : "Забронировать тайно"}
+                  </button>
+                )}
+              </div>
             )}
           </div>
         ))}
